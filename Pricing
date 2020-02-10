@@ -1,0 +1,42 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Feb 10 12:50:33 2020
+
+@author: Palash Raj
+"""
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+from statistics import mean 
+#df = pd.read_excel (r'C:\Users\oyo\Documents\OYO_Data\v3 copy - for CALVIN request (G2G) (1).xlsx', sheet_name='v3 copy - for CALVIN request (G')
+
+df = pd.read_csv(r"C:\Users\oyo\Documents\OYO_Data\v3 copy - for CALVIN request (G2G) (1).csv")
+
+
+df['mapping'] = df.Shipper.map(str) + "*"  + df['Origin City']+ "*" +df['Destination City']
+
+case1 = set(df['mapping'].unique())
+
+def check_case1(Input_Ship, Input_O, Input_D):
+    return Input_Ship+'*'+Input_O+'*'+Input_D in case1
+
+
+def recommend(Input_Ship, Input_O, Input_D):
+    ret = {}
+    prices = []
+    if check_case1(Input_Ship, Input_O, Input_D):
+       prices = df[df['mapping']==Input_Ship+'*'+Input_O+'*'+Input_D]['Transporter Pricing']
+       prices = list(prices.map(lambda x: float(x.replace(',',''))))
+    else:
+       prices = df[(df['Origin City']==Input_O) & (df['Destination City']==Input_D)]['Transporter Pricing']
+       prices = list(prices.map(lambda x: float(x.replace(',',''))))
+       ret['Note'] = "Price data history not available to Shipper, quote a higher price. "
+    ret['avg_price'] = mean(prices)
+    ret['max_price'] = max(prices)
+    ret['min_price'] = min(prices)
+    plt.hist(prices, bins='auto')
+    return ret
+   
+recommend('SHP-0069', 'Bogor', 'Jakarta Utara')
+    
